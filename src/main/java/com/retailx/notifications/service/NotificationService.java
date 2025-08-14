@@ -71,6 +71,33 @@ public class NotificationService {
     }
     
     /**
+     * Retrieves all notifications with optional filtering
+     * 
+     * LEGACY: This returns all notifications from in-memory storage.
+     * Real implementation should use proper database queries with pagination.
+     * 
+     * @param status Optional status filter
+     * @param type Optional notification type filter
+     * @param recipient Optional recipient filter
+     * @return List of notifications matching the filters
+     */
+    public java.util.List<NotificationResponse> getAllNotifications(
+            NotificationResponse.NotificationStatus status,
+            NotificationRequest.NotificationType type,
+            String recipient) {
+        
+        // TODO: Implement proper database query with pagination (RETAILX-8888)
+        // TODO: Add proper indexing for efficient filtering (RETAILX-7777)
+        
+        return notificationStore.values().stream()
+            .filter(notification -> status == null || notification.getStatus() == status)
+            .filter(notification -> type == null || notification.getType() == type)
+            .filter(notification -> recipient == null || notification.getRecipient().contains(recipient))
+            .sorted((n1, n2) -> n2.getCreatedAt().compareTo(n1.getCreatedAt())) // Most recent first
+            .collect(java.util.stream.Collectors.toList());
+    }
+    
+    /**
      * Mock sending result for demonstration
      * 
      * LEGACY: This simulates notification sending results.

@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
  * Only the most critical endpoints are implemented for backward compatibility.
  * 
  * TODOs:
- * - [ ] Implement GET /notifications endpoint with filtering (RETAILX-2233)
+ * - [x] Implement GET /notifications endpoint with filtering (RETAILX-2233)
  * - [ ] Add proper error handling and status codes (RETAILX-5432)
  * - [ ] Implement rate limiting middleware (RETAILX-9988)
  * - [ ] Add request/response logging (RETAILX-6789)
@@ -124,7 +124,56 @@ public class NotificationController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
     
-    // TODO: Implement GET /notifications endpoint with status filtering (RETAILX-2233)
+    /**
+     * Get all notifications with optional filtering
+     * 
+     * GET /v1/notifications
+     * 
+     * LEGACY BEHAVIOR:
+     * - Returns all notifications from in-memory storage (no pagination)
+     * - Basic filtering by status, type, and recipient
+     * - Results are sorted by creation time (most recent first)
+     * 
+     * TODOs:
+     * - [ ] Add pagination support (RETAILX-1111)
+     * - [ ] Add date range filtering (RETAILX-2222)
+     * - [ ] Implement proper database queries (RETAILX-8888)
+     */
+    @Operation(
+        summary = "Get all notifications",
+        description = "Retrieve all notifications with optional filtering by status, type, and recipient. Legacy implementation without pagination."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Notifications retrieved successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = NotificationResponse.class))),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @GetMapping("/notifications")
+    public ResponseEntity<java.util.List<NotificationResponse>> getNotifications(
+        @Parameter(description = "Filter by notification status", required = false)
+        @RequestParam(required = false) NotificationResponse.NotificationStatus status,
+        
+        @Parameter(description = "Filter by notification type", required = false)
+        @RequestParam(required = false) NotificationRequest.NotificationType type,
+        
+        @Parameter(description = "Filter by recipient (partial match)", required = false)
+        @RequestParam(required = false) String recipient) {
+        
+        // TODO: Add input validation for query parameters (RETAILX-7890)
+        // TODO: Add pagination parameters (limit, offset) (RETAILX-1111)
+        
+        try {
+            java.util.List<NotificationResponse> notifications = 
+                notificationService.getAllNotifications(status, type, recipient);
+            
+            return new ResponseEntity<>(notifications, HttpStatus.OK);
+        } catch (Exception e) {
+            // TODO: Implement proper error handling and return appropriate status codes (RETAILX-5432)
+            // For now, return 500 for any error
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
     // TODO: Add health check endpoint (RETAILX-5555)
     // TODO: Add metrics endpoint for monitoring (RETAILX-6666)
 }
